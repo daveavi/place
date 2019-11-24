@@ -1,0 +1,18 @@
+version: '3'
+services:
+  web:
+    image: "rplace"
+    ports:
+      - 8080:8080
+      - 8081:8081
+    networks:
+      - rplace
+  redis:
+    image: "redis:alpine"
+    ports:
+      - 6379:6379
+    networks: 
+      - rplace
+networks:
+  rplace:
+    driver: overlay
