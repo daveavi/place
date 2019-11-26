@@ -25,11 +25,18 @@
 					alert("closed code:" + event.code + " reason:" +event.reason + " wasClean:"+event.wasClean);
 				};
 				socket.onmessage = function (event) {
-					var o=JSON.parse(event.data);
+					var data = event.data;
+					var characters = data.split('');
+					var board = characters.map(function(char) {
+						return char.charCodeAt(0).toString(2)
+					}).join('');
+					for ()
+					// var o=JSON.parse(event.data);
+					// console.log(o);
 
-					var context = document.getElementById('canvas').getContext('2d');
-					context.fillStyle = 'rgb('+o.r+','+o.g+','+o.b+')';
-		   			context.fillRect(o.x, o.y, 1, 1);
+					// var context = document.getElementById('canvas').getContext('2d');
+					// context.fillStyle = 'rgb('+o.r+','+o.g+','+o.b+')';
+		   			// context.fillRect(o.x, o.y, 1, 1);
 				}
 
 				// Comment out the event handler below when in production

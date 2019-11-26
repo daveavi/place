@@ -2,6 +2,7 @@ const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port: 8081 });
 
 var redis = require('redis');
+
 var client = redis.createClient(6379, 'redis');
 
 client.on('connect', function() {
@@ -16,23 +17,18 @@ var dim = 250; // note: this is not the right dimensions!!
 var board=new Array(dim);
 
 var s = "a";
-client.set('board', s.repeat(50));
+client.set('board', s.repeat(dim*dim/2));
 for(var x=0;x<dim;x++){
 	board[x]=new Array(dim);
 	for(var y=0;y<dim;y++){
-		//client.set('boardbits', 'u4', y*dim + x, 15);
+		i = (x*dim + y) * 4;
+		client.setbit('board', i, 1);
+		client.setbit('board', i+1, 1);
+		client.setbit('board', i+2, 1);
+		client.setbit('board', i+3, 1);
 		board[x][y]={ 'r':255, 'g':255, 'b':255 };
 	}
 }
-client.get('board', redis.print);
-client.getbit('board', 0, redis.print);
-client.getbit('board', 1, redis.print);
-client.getbit('board', 2, redis.print);
-client.getbit('board', 3, redis.print);
-client.getbit('board', 4, redis.print);
-client.getbit('board', 5, redis.print);
-client.getbit('board', 6, redis.print);
-client.getbit('board', 7, redis.print);
 
 
 
@@ -76,19 +72,13 @@ wss.on('connection', function(ws) {
 	// send initial board: this is slow!!!
 	for(x=0;x<dim;x++){
 		for(y=0;y<dim;y++){
-			client.get('board', redis.print);
-			client.getbit('board', 0, redis.print);
-			client.getbit('board', 1, redis.print);
-			client.getbit('board', 2, redis.print);
-			client.getbit('board', 3, redis.print);
-			client.getbit('board', 4, redis.print);
-			client.getbit('board', 5, redis.print);
-			client.getbit('board', 6, redis.print);
-			client.getbit('board', 7, redis.print);
 			var o = { 'x' : x, 'y' : y, 'r': board[x][y].r, 'g': board[x][y].g, 'b': board[x][y].b };
-			ws.send(JSON.stringify(o));
+			//ws.send(JSON.stringify(o));
 		}
 	}
+	client.get('board', function(error, res) {
+		ws.send(res.toString());
+	});
 
 	// when we get a message from the client
 	ws.on('message', function(message) {
