@@ -13,24 +13,11 @@ client.on("error", function (err) {
     console.log("Error " + err);
 });
  
-var dim = 250; // note: this is not the right dimensions!!
-var board=new Array(dim);
+var dim = 1000; // note: this is not the right dimensions!!
 
-var s = "a";
-client.set('board', s.repeat(dim*dim/2));
-for(var x=0;x<dim;x++){
-	board[x]=new Array(dim);
-	for(var y=0;y<dim;y++){
-		i = (x*dim + y) * 4;
-		client.setbit('board', i, 1);
-		client.setbit('board', i+1, 1);
-		client.setbit('board', i+2, 1);
-		client.setbit('board', i+3, 1);
-		board[x][y]={ 'r':255, 'g':255, 'b':255 };
-	}
-}
-
-
+var s = String.fromCharCode(15);
+s = s.repeat(dim*dim);
+client.set('board', s);
 
 wss.on('close', function() {
     console.log('disconnected');
@@ -69,24 +56,23 @@ wss.on('connection', function(ws) {
   	ws.isAlive = true;
   	ws.on('pong', heartbeat);
 
-	// send initial board: this is slow!!!
-	for(x=0;x<dim;x++){
-		for(y=0;y<dim;y++){
-			var o = { 'x' : x, 'y' : y, 'r': board[x][y].r, 'g': board[x][y].g, 'b': board[x][y].b };
-			//ws.send(JSON.stringify(o));
-		}
-	}
 	client.get('board', function(error, res) {
-		ws.send(res.toString());
+		var message = {'type': 'board', 'board': res.toString()}
+		ws.send(JSON.stringify(message));
 	});
 
 	// when we get a message from the client
 	ws.on('message', function(message) {
 		console.log(message);
-		var o = JSON.parse(message);
-		if(isValidSet(o)){
-			wss.broadcast(message);
-			board[o.x][o.y] = { 'r': o.r, 'g': o.g, 'b': o.b };
+		var data = JSON.parse(message);
+		wss.broadcast(message);
+		if (data.type == 'pixel') {
+			var p = data.pixel;
+			i = (p.x*1000 + p.y) * 8;
+			client.setbit('board', i+4, p.r);
+			client.setbit('board', i+5, p.g);
+			client.setbit('board', i+6, p.b);
+			client.setbit('board', i+7, p.a);
 		}
 	});
 });

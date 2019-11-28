@@ -25,38 +25,60 @@
 					alert("closed code:" + event.code + " reason:" +event.reason + " wasClean:"+event.wasClean);
 				};
 				socket.onmessage = function (event) {
-					var data = event.data;
-					var characters = data.split('');
-					var board = characters.map(function(char) {
-						return char.charCodeAt(0).toString(2)
-					}).join('');
-					for ()
-					// var o=JSON.parse(event.data);
-					// console.log(o);
+					var context = document.getElementById('canvas').getContext('2d');
+					var data = JSON.parse(event.data);
+					console.log("Board downloaded");
+					if (data.type == 'board') {
+						var characters = data.board.split('');
+						var board = characters.map(function(char) {
+							b = char.charCodeAt(0).toString(2);
+							while (b.length != 4) {
+								b = "0" + b;
+							}
+							return b
+						}).join('');
+						for (var y = 0; y < 1000; y++) {
+							for (var x = 0; x < 1000; x++) {
+								i = (y*1000 + x) * 4;
+								a = board[i+3] == 0 ? 0.5 : 1.0;
+								context.fillStyle = 'rgba('+board[i]*255+','+board[i+1]*255+','+board[i+2]*255+','+a+')';
+								context.fillRect(y, x, 1, 1);
+							}
+						}
+					} else if (data.type == 'pixel') {
+						var pixel = data.pixel
+						a = pixel.a == 0 ? 0.5 : 1.0;
+						context.fillStyle = 'rgba('+pixel.r*255+','+pixel.g*255+','+pixel.b*255+','+a+')';
+						
+						console.log('rgba('+pixel.r*255+','+pixel.g*255+','+pixel.b*255+','+a+')');
+						context.fillRect(pixel.x, pixel.y, 1, 1);
+					}
+					
 
-					// var context = document.getElementById('canvas').getContext('2d');
-					// context.fillStyle = 'rgb('+o.r+','+o.g+','+o.b+')';
-		   			// context.fillRect(o.x, o.y, 1, 1);
+					
 				}
 
 				// Comment out the event handler below when in production
 				$('#canvas').mousemove(function(event){
 					var x=event.pageX-this.offsetLeft;
 					var y=event.pageY-this.offsetTop;
-					var o = { 'x': x, 'y': y, 'r': 0, 'g':0, 'b':0 };
-					socket.send(JSON.stringify(o));
+					var p = { 'x': x, 'y': y, 'r': parseInt($('#r').val()), 'g':parseInt($('#g').val()), 'b':parseInt($('#b').val()), 'a':parseInt($('#a').val())};
+					var message = {'type': 'pixel', 'pixel': p};
+					socket.send(JSON.stringify(message));
 				});
 				$('#setForm').submit(function( event ) {
-					var o = { 'x': $('#x').val(), 
+					var p = { 'x': $('#x').val(), 
 						'y': $('#y').val(), 
 						'r':$('#r').val(), 
 						'g':$('#g').val(), 
-						'b':$('#b').val()};
+						'b':$('#b').val(),
+						'a':$('#a').val()};
 
-					for(var key in o){
-						o[key]=parseInt(o[key]);
+					for(var key in p){
+						p[key]=parseInt(p[key]);
 					}
-					socket.send(JSON.stringify(o));
+					var message = {'type': 'pixel', 'pixel': p};
+					socket.send(JSON.stringify(message));
   					event.preventDefault();
 				});
 			});
@@ -78,14 +100,15 @@
 	<body>
 		<h1>r/place clone</h1>
 
-		<canvas id="canvas" width="250" height="250" ></canvas>
+		<canvas id="canvas" width="1000" height="1000" ></canvas>
 		<form id="setForm">
                         (<input type="number" id="x" placeholder="x" min="0" max="250">,
                         <input type="number" id="y" placeholder="y" min="0" max="250">)
                         &nbsp; &nbsp; &nbsp;
-                        (<input type="number" id="r" placeholder="r" min="0" max="255">,
-                        <input type="number"  id="g" placeholder="g" min="0" max="255">,
-                        <input type="number"  id="b" placeholder="b" min="0" max="255">)
+                        (<input type="number" id="r" placeholder="r" min="0" max="1">,
+                        <input type="number"  id="g" placeholder="g" min="0" max="1">,
+						<input type="number"  id="b" placeholder="b" min="0" max="1">,
+						<input type="number"  id="a" placeholder="a" min="0" max="1">)
                         &nbsp; &nbsp; &nbsp;
                         <input type="submit" name="set" value="set"/>
                 </form>
