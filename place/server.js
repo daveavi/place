@@ -4,13 +4,16 @@ const wss = new WebSocket.Server({ port: 8081 });
 var redis = require('redis');
 
 var client = redis.createClient(6379, 'redis');
+var subscriber = redis.createClient(6379, 'redis');
 
-client.on('connect', function() {
-	console.log('connected');
+subscriber.on("message", function (channel, message) {
+	if (channel == "pixelUpdate") {
+		wss.broadcast(message);
+	}
+	
 });
-
-client.on("error", function (err) {
-    console.log("Error " + err);
+subscriber.subscribe("pixelUpdate", function(error) {
+	console.log(error);
 });
  
 var dim = 1000; // note: this is not the right dimensions!!
@@ -18,6 +21,8 @@ var dim = 1000; // note: this is not the right dimensions!!
 var s = String.fromCharCode(15);
 s = s.repeat(dim*dim);
 client.set('board', s);
+
+
 
 wss.on('close', function() {
     console.log('disconnected');
@@ -63,9 +68,8 @@ wss.on('connection', function(ws) {
 
 	// when we get a message from the client
 	ws.on('message', function(message) {
-		console.log(message);
 		var data = JSON.parse(message);
-		wss.broadcast(message);
+		
 		if (data.type == 'pixel') {
 			var p = data.pixel;
 			i = (p.x*1000 + p.y) * 8;
@@ -73,9 +77,11 @@ wss.on('connection', function(ws) {
 			client.setbit('board', i+5, p.g);
 			client.setbit('board', i+6, p.b);
 			client.setbit('board', i+7, p.a);
+			client.publish("pixelUpdate", JSON.stringify(data));
 		}
 	});
 });
+
 
 // heartbeat (ping) sent to all clients
 const interval = setInterval(function ping() {
