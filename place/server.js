@@ -3,8 +3,10 @@ const wss = new WebSocket.Server({ port: 8081 });
 
 var redis = require('redis');
 
-var client = redis.createClient(6379, 'redis');
-var subscriber = redis.createClient(6379, 'redis');
+//var aws_redis = "redis-place.97v05f.clustercfg.use1.cache.amazonaws.com";
+var aws_redis = "redis"
+var client = redis.createClient(6379, aws_redis);
+var subscriber = redis.createClient(6379, aws_redis);
 
 subscriber.on("message", function (channel, message) {
 	if (channel == "pixelUpdate") {
