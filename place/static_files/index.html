@@ -9,6 +9,7 @@
 		<title>r/place clone</title>
 
 		<script src="jquery-3.1.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
 		<script type="text/javascript">
 	
 			var socket;
@@ -16,20 +17,21 @@
 			$(function(){
 				// socket = new WebSocket("ws://cslinux.utm.utoronto.ca:8001");
 				// socket = new WebSocket("ws://localhost:8001");
-				socket = new WebSocket("ws://"+window.location.hostname+":8081");
-				socket.onopen = function (event) {
-					$('#sendButton').removeAttr('disabled');
-					console.log("connected");
-				};
-				socket.onclose = function (event) {
-					alert("closed code:" + event.code + " reason:" +event.reason + " wasClean:"+event.wasClean);
-				};
-				socket.onmessage = function (event) {
+				//socket = io.connect("ws://"+window.location.hostname+":8081");
+				socket = io.connect("http://127.0.0.1:8080");
+				// socket.onopen = function (event) {
+				// 	$('#sendButton').removeAttr('disabled');
+				// 	//console.log("connected");
+				// };
+				// socket.onclose = function (event) {
+				// 	alert("closed code:" + event.code + " reason:" +event.reason + " wasClean:"+event.wasClean);
+				// };
+				socket.on('message', function (message) {
 					var context = document.getElementById('canvas').getContext('2d');
-					console.log(event.data);
-					var data = JSON.parse(event.data);
+					////console.log(message);
+					var data = JSON.parse(message);
 					
-					console.log("Board downloaded");
+					//console.log("Board downloaded");
 					if (data.type == 'board') {
 						var characters = data.board.split('');
 						var board = characters.map(function(char) {
@@ -52,13 +54,13 @@
 						a = pixel.a == 0 ? 0.5 : 1.0;
 						context.fillStyle = 'rgba('+pixel.r*255+','+pixel.g*255+','+pixel.b*255+','+a+')';
 						
-						console.log('rgba('+pixel.r*255+','+pixel.g*255+','+pixel.b*255+','+a+')');
+						////console.log('rgba('+pixel.r*255+','+pixel.g*255+','+pixel.b*255+','+a+')');
 						context.fillRect(pixel.x, pixel.y, 1, 1);
 					}
 					
 
 					
-				}
+				});
 
 				// Comment out the event handler below when in production
 				$('#canvas').mousemove(function(event){
@@ -66,7 +68,7 @@
 					var y=event.pageY-this.offsetTop;
 					var p = { 'x': x, 'y': y, 'r': parseInt($('#r').val()), 'g':parseInt($('#g').val()), 'b':parseInt($('#b').val()), 'a':parseInt($('#a').val())};
 					var message = {'type': 'pixel', 'pixel': p};
-					socket.send(JSON.stringify(message));
+					socket.emit("message", JSON.stringify(message));
 				});
 				$('#setForm').submit(function( event ) {
 					var p = { 'x': $('#x').val(), 
@@ -80,7 +82,7 @@
 						p[key]=parseInt(p[key]);
 					}
 					var message = {'type': 'pixel', 'pixel': p};
-					socket.send(JSON.stringify(message));
+					socket.emit("message", JSON.stringify(message));
   					event.preventDefault();
 				});
 			});
@@ -104,13 +106,13 @@
 
 		<canvas id="canvas" width="1000" height="1000" ></canvas>
 		<form id="setForm">
-                        (<input type="number" id="x" placeholder="x" min="0" max="250">,
-                        <input type="number" id="y" placeholder="y" min="0" max="250">)
+                        (<input type="number" id="x" placeholder="x" value = 0 min="0" max="250">,
+                        <input type="number" id="y" placeholder="y" value = 0 min="0" max="250">)
                         &nbsp; &nbsp; &nbsp;
-                        (<input type="number" id="r" placeholder="r" min="0" max="1">,
-                        <input type="number"  id="g" placeholder="g" min="0" max="1">,
-						<input type="number"  id="b" placeholder="b" min="0" max="1">,
-						<input type="number"  id="a" placeholder="a" min="0" max="1">)
+                        (<input type="number" id="r" placeholder="r" value = 0 min="0" max="1">,
+                        <input type="number"  id="g" placeholder="g" value = 0 min="0" max="1">,
+						<input type="number"  id="b" placeholder="b" value = 0 min="0" max="1">,
+						<input type="number"  id="a" placeholder="a" value = 0 min="0" max="1">)
                         &nbsp; &nbsp; &nbsp;
                         <input type="submit" name="set" value="set"/>
                 </form>

@@ -10,6 +10,7 @@ COPY package*.json ./
 
 RUN npm install
 RUN npm install redis
+RUN npm install socket.io
 # If you are building your code for production
 # RUN npm install --only=production
 
