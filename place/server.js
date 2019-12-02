@@ -29,7 +29,7 @@ var subscriber = redis.createClient(6379, 'redis');
 	
 // });
 subscriber.subscribe("pixelUpdate", function(error) {
-	console.log("ERROR ON SUBSCRIBE: ");
+	console.log("ERROR ON SUBSCRIBE: " + JSON.stringify(error));
 });
  
 var dim = 1000; // note: this is not the right dimensions!!
