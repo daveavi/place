@@ -9,28 +9,82 @@
 		<title>r/place clone</title>
 
 		<script src="jquery-3.1.1.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+		
+		<script type="text/javascript"> 
+
+		function setCookie(cname, cvalue, exdays) {
+			var d = new Date();
+			d.setTime(d.getTime() + (exdays*24*60*60*1000));
+			var expires = "expires="+ d.toUTCString();
+			document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+		}
+
+		function getCookie(cname) {
+			var name = cname + "=";
+			var decodedCookie = decodeURIComponent(document.cookie);
+			var ca = decodedCookie.split(';');
+			for(var i = 0; i < ca.length; i++) {
+				var c = ca[i];
+				while (c.charAt(0) == ' ') {
+				c = c.substring(1);
+				}
+				if (c.indexOf(name) == 0) {
+				return c.substring(name.length, c.length);
+				}
+			}
+			return "";
+		}
+
+		</script>
+		
 		<script type="text/javascript">
+			
+			// set cookie if not already set,
+			var user=getCookie("user");
+			if (user != "") {
+				console.log("User is already set: " + user);
+			} else {
+				user = new Date().getTime();
+				if (user != "" && user != null) {
+				setCookie("user", user, 30);
+				}
+				console.log("User newly set to: " + user);
+			}
+
+			console.log("User: " + user);
+
 	
+			/* Socket stuff */
 			var socket;
 
 			$(function(){
 				// socket = new WebSocket("ws://cslinux.utm.utoronto.ca:8001");
 				// socket = new WebSocket("ws://localhost:8001");
-				socket = new WebSocket("ws://"+window.location.hostname+":8081");
-				socket.onopen = function (event) {
-					$('#sendButton').removeAttr('disabled');
-					console.log("connected");
-				};
-				socket.onclose = function (event) {
-					alert("closed code:" + event.code + " reason:" +event.reason + " wasClean:"+event.wasClean);
-				};
-				socket.onmessage = function (event) {
+				//socket = io.connect("ws://"+window.location.hostname+":8081");
+				socket = io.connect("http://"+window.location.hostname+":8080");
+				// socket.onopen = function (event) {
+				// 	$('#sendButton').removeAttr('disabled');
+				// 	//console.log("connected");
+				// };
+				// socket.onclose = function (event) {
+				// 	alert("closed code:" + event.code + " reason:" +event.reason + " wasClean:"+event.wasClean);
+				// };
+				socket.on('message', function (message) {
+
 					var context = document.getElementById('canvas').getContext('2d');
-					console.log(event.data);
-					var data = JSON.parse(event.data);
+					////console.log(message);
+					var data = JSON.parse(message);
+
+					// change name when the server tells me to
+					if (data.type == 'nameUpdate'){
+						user = data.user;
+						setCookie("user", user, 30);
+						console.log("Changed username on request of server to:" + user);
+					}
 					
-					console.log("Board downloaded");
-					if (data.type == 'board') {
+					//console.log("Board downloaded");
+					else if (data.type == 'board') {
 						var characters = data.board.split('');
 						var board = characters.map(function(char) {
 							b = char.charCodeAt(0).toString(2);
@@ -52,36 +106,42 @@
 						a = pixel.a == 0 ? 0.5 : 1.0;
 						context.fillStyle = 'rgba('+pixel.r*255+','+pixel.g*255+','+pixel.b*255+','+a+')';
 						
-						console.log('rgba('+pixel.r*255+','+pixel.g*255+','+pixel.b*255+','+a+')');
+						////console.log('rgba('+pixel.r*255+','+pixel.g*255+','+pixel.b*255+','+a+')');
 						context.fillRect(pixel.x, pixel.y, 1, 1);
 					}
 					
-
+		
 					
-				}
+				});
 
 				// Comment out the event handler below when in production
 				$('#canvas').mousemove(function(event){
-					var x=event.pageX-this.offsetLeft;
-					var y=event.pageY-this.offsetTop;
-					var p = { 'x': x, 'y': y, 'r': parseInt($('#r').val()), 'g':parseInt($('#g').val()), 'b':parseInt($('#b').val()), 'a':parseInt($('#a').val())};
-					var message = {'type': 'pixel', 'pixel': p};
-					socket.send(JSON.stringify(message));
+					// check if user is available, then send data
+					if (user != undefined && user != "" && user != null && socket){
+						var x=event.pageX-this.offsetLeft;
+						var y=event.pageY-this.offsetTop;
+						var p = { 'x': x, 'y': y, 'r': parseInt($('#r').val()), 'g':parseInt($('#g').val()), 'b':parseInt($('#b').val()), 'a':parseInt($('#a').val())};
+						var message = {'type': 'pixel', 'pixel': p, 'user': user};
+						socket.emit("message", JSON.stringify(message));
+					}
 				});
 				$('#setForm').submit(function( event ) {
-					var p = { 'x': $('#x').val(), 
-						'y': $('#y').val(), 
-						'r':$('#r').val(), 
-						'g':$('#g').val(), 
-						'b':$('#b').val(),
-						'a':$('#a').val()};
+					// check if user is available, then send data
+					if (user != undefined && user != "" && user != null && socket){
+						var p = { 'x': $('#x').val(), 
+							'y': $('#y').val(), 
+							'r':$('#r').val(), 
+							'g':$('#g').val(), 
+							'b':$('#b').val(),
+							'a':$('#a').val()};
 
-					for(var key in p){
-						p[key]=parseInt(p[key]);
+						for(var key in p){
+							p[key]=parseInt(p[key]);
+						}
+						var message = {'type': 'pixel', 'pixel': p, 'user': user};
+						socket.emit("message", JSON.stringify(message));
+						event.preventDefault();
 					}
-					var message = {'type': 'pixel', 'pixel': p};
-					socket.send(JSON.stringify(message));
-  					event.preventDefault();
 				});
 			});
 		</script>
@@ -96,24 +156,38 @@
                         canvas {
                                 border: 1px solid black;
                         }
+
+						html { 
+							overflow-y: scroll; 
+						}
+
+						#setForm{
+							margin-top: 50px;
+							margin-bottom: 50px;
+						}
+
                         input[type=number]{ width: 3em; }
                 </style>
 	</head>
 	<body>
-		<h1>r/place clone</h1>
 
-		<canvas id="canvas" width="1000" height="1000" ></canvas>
-		<form id="setForm">
-                        (<input type="number" id="x" placeholder="x" min="0" max="250">,
-                        <input type="number" id="y" placeholder="y" min="0" max="250">)
-                        &nbsp; &nbsp; &nbsp;
-                        (<input type="number" id="r" placeholder="r" min="0" max="1">,
-                        <input type="number"  id="g" placeholder="g" min="0" max="1">,
-						<input type="number"  id="b" placeholder="b" min="0" max="1">,
-						<input type="number"  id="a" placeholder="a" min="0" max="1">)
-                        &nbsp; &nbsp; &nbsp;
-                        <input type="submit" name="set" value="set"/>
-                </form>
+		<div id="content">
+			<h1>r/place clone</h1>
+
+			<canvas id="canvas" width="1000" height="1000" ></canvas>
+			<form id="setForm">
+					(<input type="number" id="x" placeholder="x" value = 0 min="0" max="250">,
+					<input type="number" id="y" placeholder="y" value = 0 min="0" max="250">)
+					&nbsp; &nbsp; &nbsp;
+					(<input type="number" id="r" placeholder="r" value = 0 min="0" max="1">,
+					<input type="number"  id="g" placeholder="g" value = 0 min="0" max="1">,
+					<input type="number"  id="b" placeholder="b" value = 0 min="0" max="1">,
+					<input type="number"  id="a" placeholder="a" value = 0 min="0" max="1">)
+					&nbsp; &nbsp; &nbsp;
+					<input type="submit" name="set" value="set"/>
+			</form>
+		</div>
+
 	</body>
 </html>
 
