@@ -1,6 +1,3 @@
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 8081 });
-
 // Static content
 var express = require('express');
 var app = express();
@@ -16,8 +13,9 @@ io.origins('*:*');
 
 var redis = require('redis');
 
-var client = redis.createClient(6379, 'redis');
-var subscriber = redis.createClient(6379, 'redis');
+var redis_link = "redis-place.97v05f.0001.use1.cache.amazonaws.com"
+var client = redis.createClient(6379, redis_link);
+var subscriber = redis.createClient(6379, redis_link);
 
 
 
