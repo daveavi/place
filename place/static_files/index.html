@@ -156,24 +156,38 @@
                         canvas {
                                 border: 1px solid black;
                         }
+
+						html { 
+							overflow-y: scroll; 
+						}
+
+						#setForm{
+							margin-top: 50px;
+							margin-bottom: 50px;
+						}
+
                         input[type=number]{ width: 3em; }
                 </style>
 	</head>
 	<body>
-		<h1>r/place clone</h1>
 
-		<canvas id="canvas" width="1000" height="1000" ></canvas>
-		<form id="setForm">
-                        (<input type="number" id="x" placeholder="x" value = 0 min="0" max="250">,
-                        <input type="number" id="y" placeholder="y" value = 0 min="0" max="250">)
-                        &nbsp; &nbsp; &nbsp;
-                        (<input type="number" id="r" placeholder="r" value = 0 min="0" max="1">,
-                        <input type="number"  id="g" placeholder="g" value = 0 min="0" max="1">,
-						<input type="number"  id="b" placeholder="b" value = 0 min="0" max="1">,
-						<input type="number"  id="a" placeholder="a" value = 0 min="0" max="1">)
-                        &nbsp; &nbsp; &nbsp;
-                        <input type="submit" name="set" value="set"/>
-                </form>
+		<div id="content">
+			<h1>r/place clone</h1>
+
+			<canvas id="canvas" width="1000" height="1000" ></canvas>
+			<form id="setForm">
+					(<input type="number" id="x" placeholder="x" value = 0 min="0" max="250">,
+					<input type="number" id="y" placeholder="y" value = 0 min="0" max="250">)
+					&nbsp; &nbsp; &nbsp;
+					(<input type="number" id="r" placeholder="r" value = 0 min="0" max="1">,
+					<input type="number"  id="g" placeholder="g" value = 0 min="0" max="1">,
+					<input type="number"  id="b" placeholder="b" value = 0 min="0" max="1">,
+					<input type="number"  id="a" placeholder="a" value = 0 min="0" max="1">)
+					&nbsp; &nbsp; &nbsp;
+					<input type="submit" name="set" value="set"/>
+			</form>
+		</div>
+
 	</body>
 </html>
 
