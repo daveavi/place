@@ -13,12 +13,6 @@ io.origins('*:*');
 
 var redis = require('redis');
 
-<<<<<<< HEAD
-//var aws_redis = "redis-place.97v05f.clustercfg.use1.cache.amazonaws.com";
-var aws_redis = "redis"
-var client = redis.createClient(6379, aws_redis);
-var subscriber = redis.createClient(6379, aws_redis);
-=======
 //var redis_link = "redis-place.97v05f.0001.use1.cache.amazonaws.com"
 var redis_link = "redis"
 var client = redis.createClient(6379, redis_link);
@@ -26,7 +20,6 @@ var subscriber = redis.createClient(6379, redis_link);
 
 // limit for users to setting bits every x seconds
 var time_limit_sec = 10;
->>>>>>> identify
 
 
 // subscriber.on("message", function (channel, message) {
