@@ -13,10 +13,13 @@ io.origins('*:*');
 
 var redis = require('redis');
 
-var redis_link = "redis-place.97v05f.0001.use1.cache.amazonaws.com"
+//var redis_link = "redis-place.97v05f.0001.use1.cache.amazonaws.com"
+var redis_link = "redis"
 var client = redis.createClient(6379, redis_link);
 var subscriber = redis.createClient(6379, redis_link);
 
+// limit for users to setting bits every x seconds
+var time_limit_sec = 10;
 
 
 // subscriber.on("message", function (channel, message) {
@@ -49,6 +52,18 @@ client.set('board', s);
 //     }
 //   });
 // };
+
+function canSet(user){
+	// take user id in milliseconds
+	var user_in_seconds = user / 1000;
+	var curr_time = new Date().getTime() / 1000;
+
+	if (curr_time - user_in_seconds > time_limit_sec){
+		return true;
+	} 
+
+	return false;
+}
 
 // for heartbeat to make sure connection is alive 
 function noop() {}
@@ -83,21 +98,31 @@ io.sockets.on('connection', function(socket) {
 	});
 
 	// when we get a message from the client
+	// broadcast it to all other clients
 	socket.on('message', function(message) {
 		var data = JSON.parse(message);
-		console.log("We are logging data out.");
-		console.log(data);
-		if (data.type == 'pixel') {
+		//console.log("We are logging data out.");
+		//console.log(data);
+
+		// check if user can change pixel, before setting it
+		if (data.type == 'pixel' && canSet( data.user )) {
 			var p = data.pixel;
 			i = (p.x*1000 + p.y) * 8;
-		    console.log("Here are logging i & p");
-			console.log(i);
-			console.log(p);
+			//console.log("Here are logging i & p");
+			//console.log(i);
+			//console.log(p);
 			client.setbit('board', i+4, p.r);
 			client.setbit('board', i+5, p.g);
 			client.setbit('board', i+6, p.b);
 			client.setbit('board', i+7, p.a);
 			client.publish("pixelUpdate", JSON.stringify(data));
+
+			// identify user
+			console.log("Pixel set by new user called: " + data.user);
+			
+			// send user a message that it should change its name  
+			nameUpdate = {"type":"nameUpdate", "user": new Date().getTime() }
+			socket.emit("message", JSON.stringify(nameUpdate));
 		}
 	});
 

@@ -1,0 +1,1 @@
+./stop_stack; ./build_stack; ./deploy_stack
