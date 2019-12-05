@@ -4,8 +4,8 @@ var app = express();
 // static_files has all of statically returned content
 // https://expressjs.com/en/starter/static-files.html
 app.use('/',express.static('static_files')); // this directory has files to be returned
-var server = app.listen(8080, function () {
-	console.log('Example app listening on port 8080!');
+var server = app.listen(80, function () {
+	console.log('Example app listening on port 80!');
 });
 
 var io = require('socket.io').listen(server);;
@@ -13,13 +13,13 @@ io.origins('*:*');
 
 var redis = require('redis');
 
-//var redis_link = "redis-place.97v05f.0001.use1.cache.amazonaws.com"
-var redis_link = "redis"
+var redis_link = "master.elrcmlh2gget4q9.97v05f.use1.cache.amazonaws.com"
+//var redis_link = "redis"
 var client = redis.createClient(6379, redis_link);
 var subscriber = redis.createClient(6379, redis_link);
 
 // limit for users to setting bits every x seconds
-var time_limit_sec = 10;
+var time_limit_sec = 2;
 
 
 // subscriber.on("message", function (channel, message) {

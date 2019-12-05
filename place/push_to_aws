@@ -1,0 +1,1 @@
+sudo $(aws ecr get-login --no-include-email --region us-east-1); sudo docker build -t place .; sudo docker tag place:latest 112873964726.dkr.ecr.us-east-1.amazonaws.com/place:latest; sudo docker push 112873964726.dkr.ecr.us-east-1.amazonaws.com/place:latest

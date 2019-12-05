@@ -17,7 +17,6 @@ RUN npm install socket.io
 # Bundle app source
 COPY . .
 
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 80
 CMD [ "npm", "start" ]
 
