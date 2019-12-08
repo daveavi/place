@@ -1,0 +1,6 @@
+#TODO:
+- edit cluster, to set loadbalancer's stickiness to 7 days
+- edit elasticache cluster and service to attach together automatically
+	- elasticache needs to allow access to fargate services on default port
+		- how this works now is I manually add incomming rule to elasticache security group to add load balancers security group
+	- app needs to know, elasticache's endpoint before it starts up 

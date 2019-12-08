@@ -12,11 +12,30 @@ var io = require('socket.io').listen(server);;
 io.origins('*:*');
 
 var redis = require('redis');
+const new_redis = process.env["redis_ip"]
+console.log("new redis:" + JSON.stringify(new_redis))
 
-var redis_link = "master.elrcmlh2gget4q9.97v05f.use1.cache.amazonaws.com"
+var redis_link = new_redis
 //var redis_link = "redis"
 var client = redis.createClient(6379, redis_link);
+client.on("error", function(err){
+	console.log("Client Error:");
+	console.log(err);
+});
+client.on("connect", function(err){
+	console.log("Client Successs:");
+	console.log(err);
+});
+
 var subscriber = redis.createClient(6379, redis_link);
+subscriber.on("error", function(err){
+	console.log("Subscriber Error:");
+	console.log(err);
+});
+subscriber.on("connect", function(err){
+	console.log("Subscriber Successs:");
+	console.log(err);
+});
 
 // limit for users to setting bits every x seconds
 var time_limit_sec = 2;
@@ -35,9 +54,15 @@ subscriber.subscribe("pixelUpdate", function(error) {
  
 var dim = 1000; // note: this is not the right dimensions!!
 
-var s = String.fromCharCode(15);
-s = s.repeat(dim*dim);
-client.set('board', s);
+// on startup, if the board is unset, set the board
+client.get('board', function(error, res) {
+	if (res == null) {
+		var s = String.fromCharCode(15);
+		s = s.repeat(dim*dim);
+		client.set('board', s);
+	}
+});
+
 
 
 
