@@ -1,5 +1,6 @@
 #place
 r/place replica
+
 Architecture for our r/place:
   -  Have an ECS cluster that is running with an operating load balancer that directs incoming
   traffic to a set of Fargate instances.
